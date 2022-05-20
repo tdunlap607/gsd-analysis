@@ -48,7 +48,7 @@ From the above schema a set of data sources/keys can be identified:
   - [cve.org](#cveorg)
   - [gitlab.com](#gitlabcom)
   - [nvd.nist.gov](#nvdnistgov)
-  - [github.com/kurseifried:582211](#githubcomkurseifried582211)
+  - [github.com/kurseifried:582211](#githubcomkurtseifried582211)
 - [overlay](#overlay)
 
 ------
