@@ -4,7 +4,7 @@ The primary goal of this analysis is to understand the data sources, schema, and
 
 The below analysis was completed on the GSD timestamp: 2022-05-20T05:00:05:000. To replicate the below results checkout the gsd-database at commit SHA *d8ce33d48de2f00130e821e9828c3e04b9a4b520*. 
 
-
+The gsd_analysis.py can be used to replicate the below results, note it takes approximately 45 minutes to complete, the goal here wasn't optimization as I don't plan to run this script often. 
 
 ## GSD Counts
 
