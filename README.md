@@ -6,6 +6,8 @@ The below analysis was completed on the GSD timestamp: 2022-05-20T05:00:05:000
 
 - Commit SHA for gsd-database to replicate: d8ce33d48de2f00130e821e9828c3e04b9a4b520
 
+![alt text](https://github.com/tdunlap607/gsd-analysis/blob/main/data/figs/gsd_total_count.png?raw=true)
+
 
 
 ## GSD Complete Schema
