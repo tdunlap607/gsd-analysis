@@ -10,8 +10,6 @@ The below analysis was completed on the GSD timestamp: 2022-05-20T05:00:05:000. 
 
 ![alt text](https://github.com/tdunlap607/gsd-analysis/blob/main/data/figs/gsd_total_count.png?raw=true)
 
-
-
 ## GSD Complete Schema
 
 The schema  was generated using the [GenSON](https://pypi.org/project/genson/0.1.0/) package. Each GSD JSON was opened and added to the GenSON schema object to create an overall schema for all potential entries within GSD. 
@@ -97,7 +95,7 @@ Full schema can be seen here: ADD LINK / FILE
 
 ##### GSD Outliers:
 
-- Two entries are **missing** GSD identifiers, both come from GitLab advisories:
+- Two entries are **missing** GSD objects, both come from GitLab advisories:
 
   1. https://raw.globalsecuritydatabase.org/GSD-2016-1000249
   2. https://raw.globalsecuritydatabase.org/GSD-2016-1000253
