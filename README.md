@@ -97,8 +97,8 @@ Full schema can be seen here: ADD LINK / FILE
 
 - Two entries are **missing** GSD objects, both come from GitLab advisories:
 
-  1. https://raw.globalsecuritydatabase.org/GSD-2016-1000249
-  2. https://raw.globalsecuritydatabase.org/GSD-2016-1000253
+  - https://raw.globalsecuritydatabase.org/GSD-2016-1000249
+  - https://raw.globalsecuritydatabase.org/GSD-2016-1000253
 
 - 18 entries only contain GSD keys:
 
@@ -114,26 +114,26 @@ Full schema can be seen here: ADD LINK / FILE
     }
     ```
 
-    1. https://raw.globalsecuritydatabase.org/GSD-2009-5515
-    2. https://raw.globalsecuritydatabase.org/GSD-2010-13616
-    3. https://raw.globalsecuritydatabase.org/GSD-2010-26432
-    4. https://raw.globalsecuritydatabase.org/GSD-2014-1197
-    5. https://raw.globalsecuritydatabase.org/GSD-2015-9679
-    6. https://raw.globalsecuritydatabase.org/GSD-2016-1000212
-    7. https://raw.globalsecuritydatabase.org/GSD-2016-1000247
-    8. https://raw.globalsecuritydatabase.org/GSD-2017-171479
-    9. https://raw.globalsecuritydatabase.org/GSD-2019-1000029
-    10. https://raw.globalsecuritydatabase.org/GSD-2019-1002162
-    11. https://raw.globalsecuritydatabase.org/GSD-2019-14560
-    12. https://raw.globalsecuritydatabase.org/GSD-2019-15167
-    13. https://raw.globalsecuritydatabase.org/GSD-2019-15690
-    14. https://raw.globalsecuritydatabase.org/GSD-2021-3513
-    15. https://raw.globalsecuritydatabase.org/GSD-2021-47527
+    - https://raw.globalsecuritydatabase.org/GSD-2009-5515
+    - https://raw.globalsecuritydatabase.org/GSD-2010-13616
+    - https://raw.globalsecuritydatabase.org/GSD-2010-26432
+    - https://raw.globalsecuritydatabase.org/GSD-2014-1197
+    - https://raw.globalsecuritydatabase.org/GSD-2015-9679
+    - https://raw.globalsecuritydatabase.org/GSD-2016-1000212
+    - https://raw.globalsecuritydatabase.org/GSD-2016-1000247
+    - https://raw.globalsecuritydatabase.org/GSD-2017-171479
+    - https://raw.globalsecuritydatabase.org/GSD-2019-1000029
+    - https://raw.globalsecuritydatabase.org/GSD-2019-1002162
+    - https://raw.globalsecuritydatabase.org/GSD-2019-14560
+    - https://raw.globalsecuritydatabase.org/GSD-2019-15167
+    - https://raw.globalsecuritydatabase.org/GSD-2019-15690
+    - https://raw.globalsecuritydatabase.org/GSD-2021-3513
+    - https://raw.globalsecuritydatabase.org/GSD-2021-47527
 
   - Two entries come from "kurtseifried" as the reporter and are much more detailed: 
 
-    1. https://raw.globalsecuritydatabase.org/GSD-2022-1000000
-    2. https://raw.globalsecuritydatabase.org/GSD-2022-1000006
+    - https://raw.globalsecuritydatabase.org/GSD-2022-1000000
+    - https://raw.globalsecuritydatabase.org/GSD-2022-1000006
 
   - One is a GSD duplicate: https://raw.globalsecuritydatabase.org/GSD-2022-1000292
 
@@ -361,19 +361,19 @@ nvd.nist.gov schema:
 ### github.com/kurtseifried:582211:
 
 - Eight entries contain a kurtseifried:582211 key: 
-  1. https://raw.globalsecuritydatabase.org/GSD-2022-1000001
-  2. https://raw.globalsecuritydatabase.org/GSD-2022-1000002 
-  3. https://raw.globalsecuritydatabase.org/GSD-2022-1000003
-  4. https://raw.globalsecuritydatabase.org/GSD-2022-1000004
-  5. https://raw.globalsecuritydatabase.org/GSD-2022-1000005
-  6. https://raw.globalsecuritydatabase.org/GSD-2022-1000066
-  7. https://raw.globalsecuritydatabase.org/GSD-2022-1000067
-  8. https://raw.globalsecuritydatabase.org/GSD-2022-1000068
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000001
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000002 
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000003
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000004
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000005
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000066
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000067
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000068
 
 ------
 
 ### overlay:
 
 - Two entries have an overlay key:
-  1. https://raw.globalsecuritydatabase.org/GSD-2021-1002352
-  2. https://raw.globalsecuritydatabase.org/GSD-2021-1002353
+  - https://raw.globalsecuritydatabase.org/GSD-2021-1002352
+  - https://raw.globalsecuritydatabase.org/GSD-2021-1002353
