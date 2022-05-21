@@ -25,14 +25,16 @@ def get_gsd_list(file=None, saveFile=False):
     :return: A dataframe of all the GSD entries and gsd_update_time
     """
 
-    # TODO: Check if file exists before running analysis
-
     """Get the NVD Update Time from the txt file in GSD"""
     temp_gsd_update_time = open(f'{local_gsd}nvd_updated_time.txt', 'r').readlines()[0].split(":")[:-1]
     temp_gsd_update_time = parser.parse("".join(temp_gsd_update_time))
 
-    if file is not None:
-        temp_gsd_list = pd.read_csv(f"./data/{file}")
+    """Create a filename to save list of all GSD entries"""
+    gsd_entry_filename = f"./data/gsd_entries_{str(temp_gsd_update_time).split(' ')[0].replace('-','')}.csv"
+
+    """Check if file exists so we don't have to reload data"""
+    if os.path.exists(gsd_entry_filename):
+        temp_gsd_list = pd.read_csv(gsd_entry_filename)
     else:
         """Get list of available years within GSD"""
         gsd_years = [name for name in os.listdir(local_gsd) if os.path.isdir(os.path.join(local_gsd, name))]
@@ -54,14 +56,15 @@ def get_gsd_list(file=None, saveFile=False):
         temp_gsd_list["group_id"] = temp_gsd_list.apply(lambda row: row["path"].split("/")[-2], axis=1)
         temp_gsd_list["gsd"] = temp_gsd_list.apply(lambda row: row["path"].split("/")[-1], axis=1)
 
+        temp_gsd_list["api"] = temp_gsd_list.apply(
+            lambda x: f"https://raw.globalsecuritydatabase.org/{x['path'].split('/')[-1].strip('.json')}",
+            axis=1)
+
         """Reset the index"""
         temp_gsd_list = temp_gsd_list.reset_index(drop=True)
 
         """Save file if desired"""
-        # TODO: properly handle saving files
-        if saveFile:
-            temp_gsd_list.to_csv(f"./data/GSD_20220512.csv", encoding='utf-8',
-                            index=False)
+        temp_gsd_list.to_csv(gsd_entry_filename, encoding='utf-8', index=False)
 
     return temp_gsd_list, temp_gsd_update_time
 
@@ -238,31 +241,30 @@ if __name__ == '__main__':
     # visualize_gsd(gsd_list, gsd_update_time)
 
     """Generate Schemas for GSD"""
-    gsd_schema, gsd_df = generate_complete_gsd_schema(gsd_list)
+    complete_schema, gsd_df = generate_complete_gsd_schema(gsd_list)
 
-    # TODO: Update below to save schemas using the new dataframes
     """============================================================================================================"""
     """============================================================================================================"""
 
     """GSD SCHEMA"""
-    schema_gsd = schema_read["GSD"]
+    schema_gsd = complete_schema["GSD"]
     # Save GSD Schema
-    with open("../data/schema_gsd.json", "w") as write_file:
+    with open("./data/schemas/schema_gsd_object.json", "w") as write_file:
         json.dump(schema_gsd, write_file, indent=4, sort_keys=True)
 
     # Find instances when the GSD object is missing
-    example_missing_gsd = master_checklist[master_checklist["missingGSD"] == 1].sort_values("gsd_path")
+    example_missing_gsd = gsd_df[gsd_df["missingGSD"] == 1].sort_values("gsd_path")
     print("Missing GSD:", example_missing_gsd["api"].values.tolist())
 
     # Find instances when entries only contain a GSD object
     print("Only GSD:")
-    example_only_gsd = master_checklist[(master_checklist["GSD"] == 1) &
-                                        (master_checklist["cisa.gov"] == 0) &
-                                        (master_checklist["github.com/kurtseifried:582211"] == 0) &
-                                        (master_checklist["gitlab.com"] == 0) &
-                                        (master_checklist["nvd.nist.gov"] == 0) &
-                                        (master_checklist["cve.org"] == 0) &
-                                        (master_checklist["OSV"] == 0)].sort_values("gsd_path")
+    example_only_gsd = gsd_df[(gsd_df["GSD"] == 1) &
+                                        (gsd_df["cisa.gov"] == 0) &
+                                        (gsd_df["github.com/kurtseifried:582211"] == 0) &
+                                        (gsd_df["gitlab.com"] == 0) &
+                                        (gsd_df["nvd.nist.gov"] == 0) &
+                                        (gsd_df["cve.org"] == 0) &
+                                        (gsd_df["OSV"] == 0)].sort_values("gsd_path")
     for each in example_only_gsd["api"].values.tolist():
         print(each)
 
@@ -270,14 +272,14 @@ if __name__ == '__main__':
     """============================================================================================================"""
 
     """OSV SCHEMA"""
-    schema_osv = schema_read["OSV"]
+    schema_osv = complete_schema["OSV"]
 
     # Save OSV Schema
-    with open("../data/schema_osv.json", "w") as write_file:
+    with open("./data/schemas/schema_osv.json", "w") as write_file:
         json.dump(schema_osv, write_file, indent=4, sort_keys=True)
 
     # OSV examples
-    example_osv = master_checklist[master_checklist["OSV"] == 1]
+    example_osv = gsd_df[gsd_df["OSV"] == 1]
     # print two random OSV examples
     print("OSV examples:")
     for each in example_osv["api"].sample(2).values.tolist():
@@ -287,42 +289,42 @@ if __name__ == '__main__':
     """============================================================================================================"""
 
     """cisa.gov SCHEMA"""
-    schema_cisa = schema_read["namespaces"]["properties"]["cisa.gov"]
+    schema_cisa = complete_schema["namespaces"]["properties"]["cisa.gov"]
 
     # CISA examples
-    example_cisa = master_checklist[master_checklist["cisa.gov"] == 1]
+    example_cisa = gsd_df[gsd_df["cisa.gov"] == 1]
     # print two random CISA examples
     print("cisa.gov examples:")
     for each in example_cisa["api"].sample(2).values.tolist():
         print(each)
 
     # Save CISA Schema
-    with open("../data/schema_cisa.json", "w") as write_file:
+    with open("./data/schemas/schema_cisa.json", "w") as write_file:
         json.dump(schema_cisa, write_file, indent=4, sort_keys=True)
 
     """============================================================================================================"""
     """============================================================================================================"""
 
     """cve.org SCHEMA"""
-    schema_cve_org = schema_read["namespaces"]["properties"]["cve.org"]
+    schema_cve_org = complete_schema["namespaces"]["properties"]["cve.org"]
 
     # CVE.org examples
-    example_cve_org = master_checklist[master_checklist["cve.org"] == 1]
+    example_cve_org = gsd_df[gsd_df["cve.org"] == 1]
     # print two random CISA examples
     print("cve.org examples:")
     for each in example_cve_org["api"].sample(2).values.tolist():
         print(each)
 
     # Save CISA Schema
-    with open("../data/schema_cve_org.json", "w") as write_file:
+    with open("./data/schemas/schema_cve_org.json", "w") as write_file:
         json.dump(schema_cve_org, write_file, indent=4, sort_keys=True)
 
     """============================================================================================================"""
     """============================================================================================================"""
 
     """kurt SCHEMA"""
-    schema_kurt = schema_read["namespaces"]["properties"]["github.com/kurtseifried:582211"]
-    example_kurt = master_checklist[master_checklist["github.com/kurtseifried:582211"] == 1].sort_values("gsd_path")
+    schema_kurt = complete_schema["namespaces"]["properties"]["github.com/kurtseifried:582211"]
+    example_kurt = gsd_df[gsd_df["github.com/kurtseifried:582211"] == 1].sort_values("gsd_path")
     print("github.com/kurtseifried:582211")
     for each in example_kurt["api"].values.tolist():
         print(each)
@@ -331,45 +333,42 @@ if __name__ == '__main__':
     """============================================================================================================"""
 
     """gitlab.com SCHEMA"""
-    schema_gitlab = schema_read["namespaces"]["properties"]["gitlab.com"]
+    schema_gitlab = complete_schema["namespaces"]["properties"]["gitlab.com"]
     # gitlab examples
-    example_gitlab = master_checklist[master_checklist["gitlab.com"] == 1]
+    example_gitlab = gsd_df[gsd_df["gitlab.com"] == 1]
     # print two random CISA examples
     print("gitlab.com examples:")
     for each in example_gitlab["api"].sample(2).values.tolist():
         print(each)
 
     # Save gitlab.com Schema
-    with open("../data/schema_gitlab.json", "w") as write_file:
+    with open("./data/schemas/schema_gitlab.json", "w") as write_file:
         json.dump(schema_gitlab, write_file, indent=4, sort_keys=True)
 
     """============================================================================================================"""
     """============================================================================================================"""
 
     """nvd.nist.gov SCHEMA"""
-    schema_nvd = schema_read["namespaces"]["properties"]["nvd.nist.gov"]
+    schema_nvd = complete_schema["namespaces"]["properties"]["nvd.nist.gov"]
 
     # nvd examples
-    example_nvd = master_checklist[master_checklist["nvd.nist.gov"] == 1]
+    example_nvd = gsd_df[gsd_df["nvd.nist.gov"] == 1]
     # print two random NVD examples
     print("nvd.nist.gov examples:")
     for each in example_nvd["api"].sample(2).values.tolist():
         print(each)
 
     # Save gitlab.com Schema
-    with open("../data/schema_nvd.json", "w") as write_file:
+    with open("./data/schemas/schema_nvd.json", "w") as write_file:
         json.dump(schema_nvd, write_file, indent=4, sort_keys=True)
 
     """============================================================================================================"""
     """============================================================================================================"""
 
     """overlay SCHEMA"""
-    schema_overlay = schema_read["overlay"]
-    example_overlay = master_checklist[master_checklist["overlay"] == 1].sort_values("gsd_path")
+    schema_overlay = complete_schema["overlay"]
+    example_overlay = gsd_df[gsd_df["overlay"] == 1].sort_values("gsd_path")
     print("Overlay: ", example_overlay["api"].values.tolist())
 
-    # check_values = pd.DataFrame(check_values, columns=["type", "gsd_path"])
-    #
-    # check_values_counts = check_values.type.value_counts()
 
     print("done")
