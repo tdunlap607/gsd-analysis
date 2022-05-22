@@ -14,7 +14,7 @@ The gsd_analysis.py can be used to replicate the below results, note it takes ap
 
 The schema  was generated using the [GenSON](https://pypi.org/project/genson/0.1.0/) package. Each GSD JSON was opened and added to the GenSON schema object to create an overall schema for all potential entries within GSD. 
 
-Below is a condensed schema after loading all GSD entries. The complete schema can be seen here:
+Below is a condensed schema after loading all GSD entries. 
 
 ```json
 {
@@ -36,6 +36,8 @@ Below is a condensed schema after loading all GSD entries. The complete schema c
     }
 }
 ```
+
+Complete schema: [./data/schemas/gsd_complete_schema.json](https://github.com/tdunlap607/gsd-analysis/blob/main/data/schemas/gsd_complete_schema.json)
 
 ## Data Sources
 
@@ -92,6 +94,8 @@ Full schema can be seen here: ADD LINK / FILE
     "withdrawn": {"type":  "string"}
 }
 ```
+
+Complete GSD object schema: ./data/schemas/schema_gsd_object.json
 
 ##### GSD Outliers:
 
@@ -174,6 +178,8 @@ Examples from GSD with an OSV object:
 }
 ```
 
+Complete OSV object schema: [./data/schemas/schema_osv.json](https://github.com/tdunlap607/gsd-analysis/blob/main/data/schemas/schema_osv.json)
+
 ------
 
 ### cisa.gov:
@@ -210,6 +216,8 @@ Examples:
     "type": "object"
 }
 ```
+
+Complete cisa.gov object schema: [./data/schemas/schema_cisa.json](https://github.com/tdunlap607/gsd-analysis/blob/main/data/schemas/schema_cisa.json)
 
 ------
 
@@ -259,6 +267,8 @@ Examples:
     "type": "object"
 }
 ```
+
+Complete cve.org object schema: [./data/schemas/schema_cve_org.json](https://github.com/tdunlap607/gsd-analysis/blob/main/data/schemas/schema_cve_org.json)
 
 ------
 
@@ -325,6 +335,8 @@ gitlab.com schema:
 }
 ```
 
+Complete gitlab.com object schema: [./data/schemas/schema_gitlab.json](https://github.com/tdunlap607/gsd-analysis/blob/main/data/schemas/schema_gitlab.json)
+
 ------
 
 ### nvd.nist.gov:
@@ -355,6 +367,8 @@ nvd.nist.gov schema:
     "type": "object"
 }
 ```
+
+Complete nvd.nist.gov object schema: [./data/schemas/schema_nvd.json](https://github.com/tdunlap607/gsd-analysis/blob/main/data/schemas/schema_nvd.json)
 
 ------
 
