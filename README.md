@@ -6,10 +6,6 @@ The below analysis was completed on the GSD timestamp: 2022-05-20T05:00:05:000. 
 
 The gsd_analysis.py can be used to replicate the below results, note it takes approximately 1 hour and 20 minutes to complete, the goal here wasn't optimization as I don't plan to run this script often. 
 
-## GSD Counts
-
-![alt text](https://github.com/tdunlap607/gsd-analysis/blob/main/data/figs/gsd_total_count.png?raw=true)
-
 ## GSD Complete Schema
 
 The schema  was generated using the [GenSON](https://pypi.org/project/genson/0.1.0/) package. Each GSD JSON was opened and added to the GenSON schema object to create an overall schema for all potential entries within GSD. 
@@ -52,6 +48,8 @@ From the above schema a set of data sources/keys can be identified:
   - [nvd.nist.gov](#nvdnistgov)
   - [github.com/kurseifried:582211](#githubcomkurtseifried582211)
 - [overlay](#overlay)
+
+![alt text](https://github.com/tdunlap607/gsd-analysis/blob/main/data/figs/gsd_total_count.png?raw=true)
 
 ------
 
