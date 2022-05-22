@@ -119,6 +119,7 @@ def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     ax.plot(total_counts["year"], total_counts["cisa_counts"],
             label=f"CISA: {int(total_counts['cisa_counts'].sum()):,}")
 
+
     """Set some labels"""
     ax.set_xlim(gsd_year_counts["year"].min(), gsd_year_counts["year"].max())
     ax.set_ylim(0)
