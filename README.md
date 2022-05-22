@@ -59,8 +59,6 @@ From the above schema a set of data sources/keys can be identified:
 
 ##### GSD Schema:
 
-Full schema can be seen here: ADD LINK / FILE
-
 ```json
 {
     "affected": {"type":  "array"},
@@ -93,7 +91,7 @@ Full schema can be seen here: ADD LINK / FILE
 }
 ```
 
-Complete GSD object schema: ./data/schemas/schema_gsd_object.json
+Complete GSD object schema: [./data/schemas/schema_gsd_object.json](https://github.com/tdunlap607/gsd-analysis/blob/main/data/schemas/schema_gsd_object.json)
 
 ##### GSD Outliers:
 
