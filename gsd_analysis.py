@@ -30,7 +30,7 @@ def get_gsd_list(file=None, saveFile=False):
     temp_gsd_update_time = parser.parse("".join(temp_gsd_update_time))
 
     """Create a filename to save list of all GSD entries"""
-    gsd_entry_filename = f"./data/gsd_entries_{str(temp_gsd_update_time).split(' ')[0].replace('-','')}.csv"
+    gsd_entry_filename = f"./data/gsd_entries_{str(temp_gsd_update_time).split(' ')[0].replace('-', '')}.csv"
 
     """Check if file exists so we don't have to reload data"""
     if os.path.exists(gsd_entry_filename):
@@ -81,7 +81,8 @@ def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     gsd_counts["year"] = gsd_counts.apply(lambda x: int(x['gsd_path'].split("/")[2]), axis=1)
 
     """Count by year"""
-    gsd_year_counts = gsd_items["year"].value_counts().rename_axis('year').reset_index(name='counts').sort_values('year')
+    gsd_year_counts = gsd_items["year"].value_counts().rename_axis('year').reset_index(name='counts').sort_values(
+        'year')
     cve_year_counts = gsd_counts[gsd_counts["cve.org"] == 1]["year"].value_counts().rename_axis('year').reset_index(
         name='cve_counts').sort_values('year')
     nvd_year_counts = gsd_counts[gsd_counts["nvd.nist.gov"] == 1]["year"].value_counts().rename_axis(
@@ -112,13 +113,14 @@ def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot([], [], ' ', label=f"GSD Timestamp: {analysis_date}")
     ax.plot(total_counts["year"], total_counts["counts"], label=f"Total: {int(total_counts['counts'].sum()):,}")
-    ax.plot(total_counts["year"], total_counts["cve_counts"], label=f"CVE.ORG: {int(total_counts['cve_counts'].sum()):,}")
+    ax.plot(total_counts["year"], total_counts["cve_counts"],
+            label=f"CVE.ORG: {int(total_counts['cve_counts'].sum()):,}")
     ax.plot(total_counts["year"], total_counts["nvd_counts"], label=f"NVD: {int(total_counts['nvd_counts'].sum()):,}")
-    ax.plot(total_counts["year"], total_counts["gitlab_counts"], label=f"GitLab: {int(total_counts['gitlab_counts'].sum()):,}")
+    ax.plot(total_counts["year"], total_counts["gitlab_counts"],
+            label=f"GitLab: {int(total_counts['gitlab_counts'].sum()):,}")
     ax.plot(total_counts["year"], total_counts["osv_counts"], label=f"OSV: {int(total_counts['osv_counts'].sum()):,}")
     ax.plot(total_counts["year"], total_counts["cisa_counts"],
             label=f"CISA: {int(total_counts['cisa_counts'].sum()):,}")
-
 
     """Set some labels"""
     ax.set_xlim(gsd_year_counts["year"].min(), gsd_year_counts["year"].max())
@@ -126,7 +128,7 @@ def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     plt.xticks(rotation=75)
     loc = plticker.MultipleLocator(base=1.0)  # this locator puts ticks at regular intervals
     ax.xaxis.set_major_locator(loc)
-    plt.yticks(np.arange(0, gsd_year_counts["counts"].max()+5000, 5000))
+    plt.yticks(np.arange(0, gsd_year_counts["counts"].max() + 5000, 5000))
     ax.get_yaxis().set_major_formatter(plticker.FuncFormatter(lambda x, p: format(int(x), ',')))
     ax.set_ylabel('Count')
     ax.set_title(f'Count of GSD Entries by Year')
@@ -139,7 +141,6 @@ def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     # # place a text box in middle left
     # ax.text(0.50, 0.98, textstr, transform=ax.transAxes, fontsize=8,
     #         verticalalignment='top', bbox=props)
-
 
     """Save Fig"""
     plt.savefig("./data/figs/gsd_total_count.png", bbox_inches="tight")
@@ -282,7 +283,22 @@ if __name__ == '__main__':
     complete_schema, gsd_df = generate_complete_gsd_schema(gsd_list, gsd_update_time)
 
     """Figure for GSD Entries by Year"""
-    visualize_gsd(gsd_list, gsd_df, gsd_update_time)
+    # visualize_gsd(gsd_list, gsd_df, gsd_update_time)
+
+    """============================================================================================================"""
+    """============================================================================================================"""
+
+    """Checking for CVE duplicates"""
+    gsd_alias_cve = gsd_df["GSD_alias"].value_counts().rename_axis('cve').reset_index(name='count')
+    gsd_alias_cve = gsd_alias_cve[(gsd_alias_cve["count"] > 1) & (gsd_alias_cve['cve'] != "Missing")]
+    duplicates = pd.merge(gsd_df, gsd_alias_cve,
+                          left_on="GSD_alias",
+                          right_on="cve",
+                          how="inner")
+    print(f"Duplicate CVEs with differing GSD entries: {len(duplicates)}")
+    for each in duplicates[["cve", "api"]].values.tolist():
+        print(f"{each[0]}: {each[1]}")
+
 
     """============================================================================================================"""
     """============================================================================================================"""
@@ -300,12 +316,12 @@ if __name__ == '__main__':
 
     # Find instances when entries only contain a GSD object
     example_only_gsd = gsd_df[(gsd_df["GSD"] == 1) &
-                                        (gsd_df["cisa.gov"] == 0) &
-                                        (gsd_df["github.com/kurtseifried:582211"] == 0) &
-                                        (gsd_df["gitlab.com"] == 0) &
-                                        (gsd_df["nvd.nist.gov"] == 0) &
-                                        (gsd_df["cve.org"] == 0) &
-                                        (gsd_df["OSV"] == 0)].sort_values("gsd_path")
+                              (gsd_df["cisa.gov"] == 0) &
+                              (gsd_df["github.com/kurtseifried:582211"] == 0) &
+                              (gsd_df["gitlab.com"] == 0) &
+                              (gsd_df["nvd.nist.gov"] == 0) &
+                              (gsd_df["cve.org"] == 0) &
+                              (gsd_df["OSV"] == 0)].sort_values("gsd_path")
     print(f"Only contains a GSD object. Total: {len(example_only_gsd)} | {example_only_gsd['api'].values.tolist()}\n")
 
     """============================================================================================================"""
@@ -376,7 +392,6 @@ if __name__ == '__main__':
     example_gitlab = gsd_df[gsd_df["gitlab.com"] == 1]
     # print two random CISA examples
     print(f"gitlab.com examples: {example_gitlab['api'].sample(2).values.tolist()}\n")
-
 
     """============================================================================================================"""
     """============================================================================================================"""

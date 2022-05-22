@@ -137,6 +137,15 @@ Complete GSD object schema: [./data/schemas/schema_gsd_object.json](https://gith
 
   - One is a GSD duplicate: https://raw.globalsecuritydatabase.org/GSD-2022-1000292
 
+##### GSD entries with the same CVE Alias
+
+- CVE-2021-42392
+  - https://raw.globalsecuritydatabase.org/GSD-2021-42392
+  - https://raw.globalsecuritydatabase.org/GSD-2022-1000006
+- CVE-2022-0126
+  - https://raw.globalsecuritydatabase.org/GSD-2022-0126
+  - https://raw.globalsecuritydatabase.org/GSD-2022-0821
+
 ------
 
 ### OSV:
@@ -387,3 +396,4 @@ Complete nvd.nist.gov object schema: [./data/schemas/schema_nvd.json](https://gi
 - Two entries have an overlay key:
   - https://raw.globalsecuritydatabase.org/GSD-2021-1002352
   - https://raw.globalsecuritydatabase.org/GSD-2021-1002353
+
