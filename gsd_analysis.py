@@ -15,6 +15,7 @@ from genson import SchemaBuilder
 
 """Replace with local gsd-database clone"""
 local_gsd = f"../gsd-database/"
+github_advisory_db = "../advisory-database/"
 
 
 def get_gsd_list(file=None, saveFile=False):
@@ -68,6 +69,22 @@ def get_gsd_list(file=None, saveFile=False):
 
     return temp_gsd_list, temp_gsd_update_time
 
+
+def get_github_advisory_db_list():
+    """
+    Gets the list of available Github reviewed advisories from a locally cloned github.com/github/advisory-database
+    :param file:
+    :return:
+    """
+    """Base DF to hold data"""
+    temp_advisories_list = pd.DataFrame(columns=["path"])
+    """Walk through the gsd-database and obtain the GSD json files"""
+    for r, d, f in os.walk(f"{github_advisory_db}advisories/github-reviewed/"):
+        temp_advisories_file = [f"{r}/{gsd}" for gsd in f]
+        temp_advisories = pd.DataFrame(temp_advisories_file, columns=["path"])
+        temp_advisories_list = pd.concat([temp_advisories_list, temp_advisories])
+
+    # TODO: parse filenames to create extra columns
 
 def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     """
@@ -279,6 +296,9 @@ if __name__ == '__main__':
     """Get GSD Entries & the update time"""
     gsd_list, gsd_update_time = get_gsd_list()
 
+    """Get Github Advisories DB"""
+    # get_github_advisory_db_list()
+
     """Generate Schemas for GSD"""
     complete_schema, gsd_df = generate_complete_gsd_schema(gsd_list, gsd_update_time)
 
@@ -288,7 +308,7 @@ if __name__ == '__main__':
     """============================================================================================================"""
     """============================================================================================================"""
 
-    """Checking for CVE duplicates"""
+    """Checking for GSD alias duplicates"""
     gsd_alias_cve = gsd_df["GSD_alias"].value_counts().rename_axis('cve').reset_index(name='count')
     gsd_alias_cve = gsd_alias_cve[(gsd_alias_cve["count"] > 1) & (gsd_alias_cve['cve'] != "Missing")]
     duplicates = pd.merge(gsd_df, gsd_alias_cve,
@@ -299,7 +319,26 @@ if __name__ == '__main__':
     for each in duplicates[["cve", "api"]].values.tolist():
         print(f"{each[0]}: {each[1]}")
 
+    """Checking when GSD alias != cve.org CVE"""
+    gsd_df["gsd_vs_cve_org"] = gsd_df.apply(lambda x: 1 if x['GSD_alias'] == x['cve_org_id'] else 0, axis=1)
+    gsd_mismatch = gsd_df[(gsd_df["gsd_vs_cve_org"] == 0)
+                          & (gsd_df['cve.org'] == 1)
+                          & (gsd_df['GSD_alias'] != "Missing")]
 
+    """Checking when GSD alias != nvd CVE"""
+    gsd_df["gsd_vs_nvd"] = gsd_df.apply(lambda x: 1 if x['GSD_alias'] == x['nvd_id'] else 0, axis=1)
+    gsd_nvd_mismatch = gsd_df[(gsd_df["gsd_vs_nvd"] == 0)
+                          & (gsd_df['nvd.nist.gov'] == 1)
+                          & (gsd_df['GSD_alias'] != "Missing")]
+
+    """Checking when cve.org != nvd CVE"""
+    gsd_df["cve_vs_nvd"] = gsd_df.apply(lambda x: 1 if x['cve_org_id'] == x['nvd_id'] else 0, axis=1)
+    cve_nvd_mismatch = gsd_df[(gsd_df["cve_vs_nvd"] == 0)
+                              & (gsd_df['nvd.nist.gov'] == 1)
+                              & (gsd_df['cve.org'] == 1)]
+
+    nvd_cve = gsd_df["cve_org_id"].value_counts().rename_axis('cve').reset_index(name='count')
+    nvd_cve = nvd_cve[nvd_cve["count"] > 1]
     """============================================================================================================"""
     """============================================================================================================"""
 
