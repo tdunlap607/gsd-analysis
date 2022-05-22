@@ -69,20 +69,55 @@ def get_gsd_list(file=None, saveFile=False):
     return temp_gsd_list, temp_gsd_update_time
 
 
-def visualize_gsd(gsd_items, analysis_date):
+def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     """
     Create a figure of the GSD item counts by year
     :param gsd_items: Dataframe of GSD entries
+    :param gsd_items: Dataframe of GSD counts for each objects
     :param analysis_date: Date of GSD NVD update time
     :return: None
     """
 
+    gsd_counts["year"] = gsd_counts.apply(lambda x: int(x['gsd_path'].split("/")[2]), axis=1)
+
     """Count by year"""
     gsd_year_counts = gsd_items["year"].value_counts().rename_axis('year').reset_index(name='counts').sort_values('year')
+    cve_year_counts = gsd_counts[gsd_counts["cve.org"] == 1]["year"].value_counts().rename_axis('year').reset_index(
+        name='cve_counts').sort_values('year')
+    nvd_year_counts = gsd_counts[gsd_counts["nvd.nist.gov"] == 1]["year"].value_counts().rename_axis(
+        'year').reset_index(
+        name='nvd_counts').sort_values('year')
+    gitlab_year_counts = gsd_counts[gsd_counts["gitlab.com"] == 1]["year"].value_counts().rename_axis(
+        'year').reset_index(
+        name='gitlab_counts').sort_values('year')
+    osv_year_counts = gsd_counts[gsd_counts["OSV"] == 1]["year"].value_counts().rename_axis('year').reset_index(
+        name='osv_counts').sort_values('year')
+    cisa_year_counts = gsd_counts[gsd_counts["cisa.gov"] == 1]["year"].value_counts().rename_axis('year').reset_index(
+        name='cisa_counts').sort_values('year')
+
+    """Combine each object type to a single DF"""
+    total_counts = pd.merge(gsd_year_counts, osv_year_counts,
+                            on="year",
+                            how="outer")
+
+    total_counts = total_counts.merge(cisa_year_counts, on="year", how="outer")
+    total_counts = total_counts.merge(cve_year_counts, on="year", how="outer")
+    total_counts = total_counts.merge(gitlab_year_counts, on="year", how="outer")
+    total_counts = total_counts.merge(nvd_year_counts, on="year", how="outer")
+
+    """Fill any empty columns"""
+    total_counts = total_counts.fillna(0)
 
     """Create a figure of the size of GSD by year"""
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.plot(gsd_year_counts["year"], gsd_year_counts["counts"])
+    ax.plot([], [], ' ', label=f"GSD Timestamp: {analysis_date}")
+    ax.plot(total_counts["year"], total_counts["counts"], label=f"Total: {int(total_counts['counts'].sum()):,}")
+    ax.plot(total_counts["year"], total_counts["cve_counts"], label=f"CVE.ORG: {int(total_counts['cve_counts'].sum()):,}")
+    ax.plot(total_counts["year"], total_counts["nvd_counts"], label=f"NVD: {int(total_counts['nvd_counts'].sum()):,}")
+    ax.plot(total_counts["year"], total_counts["gitlab_counts"], label=f"GitLab: {int(total_counts['gitlab_counts'].sum()):,}")
+    ax.plot(total_counts["year"], total_counts["osv_counts"], label=f"OSV: {int(total_counts['osv_counts'].sum()):,}")
+    ax.plot(total_counts["year"], total_counts["cisa_counts"],
+            label=f"CISA: {int(total_counts['cisa_counts'].sum()):,}")
 
     """Set some labels"""
     ax.set_xlim(gsd_year_counts["year"].min(), gsd_year_counts["year"].max())
@@ -95,13 +130,15 @@ def visualize_gsd(gsd_items, analysis_date):
     ax.set_ylabel('Count')
     ax.set_title(f'Count of GSD Entries by Year')
     plt.grid(color='gray', linestyle='-', linewidth=0.2)
+    plt.legend(loc='upper left')
 
-    """Add a box with some key values"""
-    textstr = f"Total Entries = {len(gsd_items):,} \nDate = {analysis_date}"
-    props = dict(boxstyle='square', facecolor='white', alpha=1)
-    # place a text box in upper left corner
-    ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
-            verticalalignment='top', bbox=props)
+    # """Add a box with some key values"""
+    # textstr = f"GSD Timestamp = {analysis_date}"
+    # props = dict(boxstyle='round', facecolor='white', edgecolor='gray', alpha=0.9)
+    # # place a text box in middle left
+    # ax.text(0.50, 0.98, textstr, transform=ax.transAxes, fontsize=8,
+    #         verticalalignment='top', bbox=props)
+
 
     """Save Fig"""
     plt.savefig("./data/figs/gsd_total_count.png", bbox_inches="tight")
@@ -240,11 +277,11 @@ if __name__ == '__main__':
     """Get GSD Entries & the update time"""
     gsd_list, gsd_update_time = get_gsd_list()
 
-    """Figure for GSD Entries by Year"""
-    # visualize_gsd(gsd_list, gsd_update_time)
-
     """Generate Schemas for GSD"""
     complete_schema, gsd_df = generate_complete_gsd_schema(gsd_list, gsd_update_time)
+
+    """Figure for GSD Entries by Year"""
+    visualize_gsd(gsd_list, gsd_df, gsd_update_time)
 
     """============================================================================================================"""
     """============================================================================================================"""
