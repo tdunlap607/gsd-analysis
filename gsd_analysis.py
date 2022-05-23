@@ -3,21 +3,23 @@ Initial file to run the GSD Analysis
 """
 
 import os
+import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import json
 import time
+from tqdm import tqdm
 from dateutil import parser
 from genson import SchemaBuilder
 
-"""Replace with local gsd-database clone"""
+"""Replace with local gsd-database clone if running from an IDE (e.g., PyCharm)"""
 local_gsd = f"../gsd-database/"
 github_advisory_db = "../advisory-database/"
 
 
-def get_gsd_list():
+def get_gsd_list(local_gsd):
     """
     Returns a dataframe of all the GSD entries.
     :param file: Known file from previous run so you don't have to parse the GSD database again
@@ -34,8 +36,10 @@ def get_gsd_list():
 
     """Check if file exists so we don't have to reload data"""
     if os.path.exists(gsd_entry_filename):
+        print(f"Using preexisting GSD Entry List: {gsd_entry_filename}\n")
         temp_gsd_list = pd.read_csv(gsd_entry_filename)
     else:
+        print(f"Scanning the gsd-database for potential GSD entries.\n")
         """Get list of available years within GSD"""
         gsd_years = [name for name in os.listdir(local_gsd) if os.path.isdir(os.path.join(local_gsd, name))]
         gsd_years = [name for name in gsd_years if "." not in name]
@@ -63,8 +67,12 @@ def get_gsd_list():
         """Reset the index"""
         temp_gsd_list = temp_gsd_list.reset_index(drop=True)
 
+        print(f"Saving GSD entries CSV to: {gsd_entry_filename}")
         """Save file if desired"""
         temp_gsd_list.to_csv(gsd_entry_filename, encoding='utf-8', index=False)
+
+    print(f"Total GSD Entries: {len(temp_gsd_list):,}.\n"
+          f"GSD Timestamp: {temp_gsd_update_time}\n")
 
     return temp_gsd_list, temp_gsd_update_time
 
@@ -83,11 +91,11 @@ def get_github_advisory_db_list():
         temp_advisories = pd.DataFrame(temp_advisories_file, columns=["path"])
         temp_advisories_list = pd.concat([temp_advisories_list, temp_advisories])
 
-    # TODO: parse filenames to create extra columns
     temp_advisories_list["year"] = temp_advisories_list.apply(lambda x: x['path'].split('/')[-4], axis=1)
     temp_advisories_list["ghsa"] = temp_advisories_list.apply(lambda x: x['path'].split('/')[-2], axis=1)
 
     return temp_advisories_list
+
 
 def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     """
@@ -170,123 +178,138 @@ def generate_complete_gsd_schema(gsd_items_complete, analysis_date):
     """
     Generates a complete GSD schema for all possible data entries
     :param gsd_items_complete: Dataframe of GSD entries
+    :param analysis_date: Timestamp from GSD database locally cloned repo
     :return: GSD schema and checklist of various counts
     """
-
     """Create a filename to save counts entries"""
     gsd_counts_filename = f"./data/gsd_counts_{str(analysis_date).split(' ')[0].replace('-', '')}.csv"
 
     # Check if schema and master_checklist already exists so we don't have to re-run
     if os.path.exists(f"./data/schemas/gsd_complete_schema.json") and os.path.exists(gsd_counts_filename):
+        print(f"Schema (./data/schemas/gsd_complete_schema.json) and counts ({gsd_counts_filename}) already exist,"
+              f"loading those.")
         with open(f"./data/schemas/gsd_complete_schema.json", 'r') as f:
             schema = json.load(f)
             f.close()
         master_checklist = pd.read_csv(gsd_counts_filename)
     else:
+        print(f"Parsing each GSD ({len(gsd_items_complete):,}) to build a schema and generate a general counts file:")
         """"Hold the complete schema"""
         builder = SchemaBuilder()
 
         """Holds various counts of the various object types in the GSD"""
         master_checklist = pd.DataFrame()
 
-        """Loop through each GSD entry, loads the JSON, adding object to Genson Schema, and creating a master dataframe"""
-        for index, gsd in gsd_items_complete.iterrows():
-            print(f"{index}/{len(gsd_items_complete)}")
-            with open(gsd["path"], 'r') as f:
-                data = json.load(f)
+        """Use tqdm to create a nice progress bar instead of printing the index of each JSON"""
+        with tqdm(total=len(gsd_items_complete)) as pbar:
+            """Loop through each GSD entry, loads the JSON, adding object to Genson Schema, 
+            creating a master dataframe"""
+            for index, gsd in gsd_items_complete.iterrows():
+                # print(f"{index}/{len(gsd_items_complete)}")
+                with open(gsd["path"], 'r') as f:
+                    data = json.load(f)
 
-                builder.add_object(data)
+                    builder.add_object(data)
 
-                temp_check_values = pd.DataFrame([gsd["path"]], columns=["gsd_path"])
+                    temp_check_values = pd.DataFrame([gsd["path"]], columns=["path"])
 
-                """Identify any JSONs without a GSD object"""
-                if '\'GSD\':' not in str(data):
-                    temp_check_values["missingGSD"] = 1
-                else:
-                    temp_check_values["missingGSD"] = 0
+                    """Identify any JSONs without a GSD object"""
+                    if '\'GSD\':' not in str(data):
+                        temp_check_values["missingGSD"] = 1
+                    else:
+                        temp_check_values["missingGSD"] = 0
 
-                """Identify any JSONs with a GSD object"""
-                if '\'GSD\':' in str(data):
-                    temp_check_values["GSD"] = 1
-                    try:
-                        temp_check_values["GSD_alias"] = data["GSD"]["alias"]
-                    except:
-                        temp_check_values["GSD_alias"] = "Missing"
-                else:
-                    temp_check_values["GSD"] = 0
-                    temp_check_values["GSD_alias"] = None
+                    """Identify any JSONs with a GSD object"""
+                    if '\'GSD\':' in str(data):
+                        temp_check_values["GSD"] = 1
+                        try:
+                            temp_check_values["GSD_alias"] = data["GSD"]["alias"]
+                        except:
+                            temp_check_values["GSD_alias"] = "Missing"
+                    else:
+                        temp_check_values["GSD"] = 0
+                        temp_check_values["GSD_alias"] = None
 
-                """Identify any JSONs with a OSV object"""
-                if '\'OSV\':' in str(data):
-                    temp_check_values["OSV"] = 1
-                else:
-                    temp_check_values["OSV"] = 0
+                    """Identify any JSONs with a OSV object"""
+                    if '\'OSV\':' in str(data):
+                        temp_check_values["OSV"] = 1
+                    else:
+                        temp_check_values["OSV"] = 0
 
-                """Identify any JSONs with a overlay object"""
-                if '\'overlay\':' in str(data):
-                    temp_check_values["overlay"] = 1
-                else:
-                    temp_check_values["overlay"] = 0
+                    """Identify any JSONs with a overlay object"""
+                    if '\'overlay\':' in str(data):
+                        temp_check_values["overlay"] = 1
+                    else:
+                        temp_check_values["overlay"] = 0
 
-                """Identify any JSONs with a cve.org object"""
-                if '\'cve.org\':' in str(data):
-                    temp_check_values["cve.org"] = 1
-                    try:
-                        temp_check_values["cve_org_id"] = data["namespaces"]["cve.org"]["CVE_data_meta"]["ID"]
-                    except:
+                    """Identify any JSONs with a cve.org object"""
+                    if '\'cve.org\':' in str(data):
+                        temp_check_values["cve.org"] = 1
+                        try:
+                            temp_check_values["cve_org_id"] = data["namespaces"]["cve.org"]["CVE_data_meta"]["ID"]
+                        except:
+                            temp_check_values["cve_org_id"] = None
+                    else:
+                        temp_check_values["cve.org"] = 0
                         temp_check_values["cve_org_id"] = None
-                else:
-                    temp_check_values["cve.org"] = 0
-                    temp_check_values["cve_org_id"] = None
 
-                """Identify any JSONs with a nvd.nist.gov object"""
-                if '\'nvd.nist.gov\':' in str(data):
-                    temp_check_values["nvd.nist.gov"] = 1
-                    try:
-                        temp_check_values["nvd_id"] = data["namespaces"]["nvd.nist.gov"]["cve"]["CVE_data_meta"]["ID"]
-                    except:
+                    """Identify any JSONs with a nvd.nist.gov object"""
+                    if '\'nvd.nist.gov\':' in str(data):
+                        temp_check_values["nvd.nist.gov"] = 1
+                        try:
+                            temp_check_values["nvd_id"] = data["namespaces"]["nvd.nist.gov"]["cve"]["CVE_data_meta"]["ID"]
+                        except:
+                            temp_check_values["nvd_id"] = None
+                    else:
+                        temp_check_values["nvd.nist.gov"] = 0
                         temp_check_values["nvd_id"] = None
-                else:
-                    temp_check_values["nvd.nist.gov"] = 0
-                    temp_check_values["nvd_id"] = None
 
-                """Identify any JSONs with a cisa object"""
-                if '\'cisa.gov\':' in str(data):
-                    temp_check_values["cisa.gov"] = 1
-                    try:
-                        temp_check_values["cisa_id"] = data["namespaces"]["cisa.gov"]["cveID"]
-                    except:
+                    """Identify any JSONs with a cisa object"""
+                    if '\'cisa.gov\':' in str(data):
+                        temp_check_values["cisa.gov"] = 1
+                        try:
+                            temp_check_values["cisa_id"] = data["namespaces"]["cisa.gov"]["cveID"]
+                        except:
+                            temp_check_values["cisa_id"] = None
+                    else:
+                        temp_check_values["cisa.gov"] = 0
                         temp_check_values["cisa_id"] = None
-                else:
-                    temp_check_values["cisa.gov"] = 0
-                    temp_check_values["cisa_id"] = None
 
-                """Identify any JSONs with a gitlab.com object"""
-                if '\'gitlab.com\':' in str(data):
-                    temp_check_values["gitlab.com"] = 1
-                    try:
-                        temp_check_values["gitlab_id"] = data["namespaces"]["gitlab.com"]["advisories"][0]["identifier"]
-                    except:
+                    """Identify any JSONs with a gitlab.com object"""
+                    if '\'gitlab.com\':' in str(data):
+                        temp_check_values["gitlab.com"] = 1
+                        try:
+                            temp_check_values["gitlab_id"] = data["namespaces"]["gitlab.com"]["advisories"][0]["identifier"]
+                        except:
+                            temp_check_values["gitlab_id"] = None
+                    else:
+                        temp_check_values["gitlab.com"] = 0
                         temp_check_values["gitlab_id"] = None
-                else:
-                    temp_check_values["gitlab.com"] = 0
-                    temp_check_values["gitlab_id"] = None
 
-                """Checking for GSD JSONs with the following key"""
-                if "github.com/kurtseifried:582211" in str(data):
-                    temp_check_values["github.com/kurtseifried:582211"] = 1
-                else:
-                    temp_check_values["github.com/kurtseifried:582211"] = 0
+                    """Checking for GSD JSONs with the following key"""
+                    if "github.com/kurtseifried:582211" in str(data):
+                        temp_check_values["github.com/kurtseifried:582211"] = 1
+                    else:
+                        temp_check_values["github.com/kurtseifried:582211"] = 0
 
-                master_checklist = pd.concat([master_checklist, temp_check_values])
+                    master_checklist = pd.concat([master_checklist, temp_check_values])
 
-                f.close()
+                    f.close()
+
+                    """Updated the progress bar by 1"""
+                    pbar.update(1)
+        """Close the progress bar"""
+        pbar.close()
 
         schema = builder.to_schema()["properties"]
 
         """Save complete schema"""
         with open("./data/schemas/gsd_complete_schema.json", "w") as schema_file:
             json.dump(schema, schema_file, indent=4, sort_keys=True)
+
+        master_checklist["api"] = master_checklist.apply(
+            lambda x: f"https://raw.globalsecuritydatabase.org/{x['path'].split('/')[-1].strip('.json')}",
+            axis=1)
 
         master_checklist.to_csv(gsd_counts_filename, encoding='utf-8', index=False)
 
@@ -296,8 +319,14 @@ def generate_complete_gsd_schema(gsd_items_complete, analysis_date):
 if __name__ == '__main__':
     start = time.time()
 
-    """Get GSD Entries & the update time"""
-    gsd_list, gsd_update_time = get_gsd_list()
+    """Check for passed arguments"""
+    try:
+        local_gsd = sys.argv[1]
+    except:
+        print(f"No local database provided. Using default {local_gsd}\n")
+
+    """Get GSD Entries & the GSD timestamp"""
+    gsd_list, gsd_update_time = get_gsd_list(local_gsd)
 
     """Get Github Advisories DB"""
     # github_advisories = get_github_advisory_db_list()
@@ -310,6 +339,7 @@ if __name__ == '__main__':
 
     """============================================================================================================"""
     """============================================================================================================"""
+    print("Running some general analysis: \n")
 
     """Checking for GSD alias duplicates"""
     gsd_alias_cve = gsd_df["GSD_alias"].value_counts().rename_axis('cve').reset_index(name='count')
@@ -331,8 +361,8 @@ if __name__ == '__main__':
     """Checking when GSD alias != nvd CVE"""
     gsd_df["gsd_vs_nvd"] = gsd_df.apply(lambda x: 1 if x['GSD_alias'] == x['nvd_id'] else 0, axis=1)
     gsd_nvd_mismatch = gsd_df[(gsd_df["gsd_vs_nvd"] == 0)
-                          & (gsd_df['nvd.nist.gov'] == 1)
-                          & (gsd_df['GSD_alias'] != "Missing")]
+                              & (gsd_df['nvd.nist.gov'] == 1)
+                              & (gsd_df['GSD_alias'] != "Missing")]
 
     """Checking when cve.org != nvd CVE"""
     gsd_df["cve_vs_nvd"] = gsd_df.apply(lambda x: 1 if x['cve_org_id'] == x['nvd_id'] else 0, axis=1)
@@ -344,6 +374,8 @@ if __name__ == '__main__':
     nvd_cve = nvd_cve[nvd_cve["count"] > 1]
     """============================================================================================================"""
     """============================================================================================================"""
+
+    print("Saving individual schemas to ./data/schemas/\n")
 
     """GSD SCHEMA"""
     schema_gsd = complete_schema["GSD"]
@@ -458,4 +490,4 @@ if __name__ == '__main__':
     example_overlay = gsd_df[gsd_df["overlay"] == 1].sort_values("gsd_path")
     print(f"overlay examples: {example_overlay['api'].values.tolist()}")
 
-    print("done")
+    print(f"Total Time: {time.time() - start}")

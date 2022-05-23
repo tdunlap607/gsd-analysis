@@ -1,6 +1,42 @@
 # GSD Analysis
 
-The primary goal of this analysis is to understand the data sources, schema, and counts of the Global Security Database ([GSD](https://github.com/cloudsecurityalliance/gsd-database#gsd-repos)). 
+The primary goal of this analysis is to understand the data sources, structure, and counts of the Global Security Database ([GSD](https://github.com/cloudsecurityalliance/gsd-database#gsd-repos)). 
+
+## Replication
+
+Clone both this repository (gsd-analysis) and the [gsd-database](https://github.com/cloudsecurityalliance/gsd-database#gsd-repos) repository.
+
+From within the gsd-analysis cloned repo run the following:
+
+```shell
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+python3 gsd_analysis.py /path_to_gsd-database_repo/
+deactivate
+```
+
+Expected runtime: 1 hour 20 mins
+
+Expected output:
+
+```shell
+$ tree ./data --dirsfirst
+./data
+├── figs
+│   └── gsd_total_count.png #Figure of updated counts for each GSD object
+├── schemas
+│   ├── gsd_complete_schema.json #Complete schema of all GSD entries
+│   ├── schema_cisa.json #CISA object schema
+│   ├── schema_cve_org.json #CVE.org object schema
+│   ├── schema_gitlab.json #GitLab object schema
+│   ├── schema_gsd_object.json #GSD object schema
+│   ├── schema_nvd.json #NVD object schema
+│   └── schema_osv.json #OSV object schema
+└── gsd_entries_20220520.csv #List of all GSD entries (path, year, group_id, gsd, api)
+```
+
+
 
 The below analysis was completed on the GSD timestamp: 2022-05-20T05:00:05:000. To replicate the below results checkout the gsd-database at commit SHA *d8ce33d48de2f00130e821e9828c3e04b9a4b520*. 
 
