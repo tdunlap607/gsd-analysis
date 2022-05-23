@@ -10,7 +10,6 @@ import matplotlib.ticker as plticker
 import json
 import time
 from dateutil import parser
-import ast
 from genson import SchemaBuilder
 
 """Replace with local gsd-database clone"""
@@ -18,7 +17,7 @@ local_gsd = f"../gsd-database/"
 github_advisory_db = "../advisory-database/"
 
 
-def get_gsd_list(file=None, saveFile=False):
+def get_gsd_list():
     """
     Returns a dataframe of all the GSD entries.
     :param file: Known file from previous run so you don't have to parse the GSD database again
@@ -85,6 +84,10 @@ def get_github_advisory_db_list():
         temp_advisories_list = pd.concat([temp_advisories_list, temp_advisories])
 
     # TODO: parse filenames to create extra columns
+    temp_advisories_list["year"] = temp_advisories_list.apply(lambda x: x['path'].split('/')[-4], axis=1)
+    temp_advisories_list["ghsa"] = temp_advisories_list.apply(lambda x: x['path'].split('/')[-2], axis=1)
+
+    return temp_advisories_list
 
 def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     """
@@ -297,7 +300,7 @@ if __name__ == '__main__':
     gsd_list, gsd_update_time = get_gsd_list()
 
     """Get Github Advisories DB"""
-    # get_github_advisory_db_list()
+    # github_advisories = get_github_advisory_db_list()
 
     """Generate Schemas for GSD"""
     complete_schema, gsd_df = generate_complete_gsd_schema(gsd_list, gsd_update_time)
