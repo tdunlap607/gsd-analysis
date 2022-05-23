@@ -106,7 +106,7 @@ def visualize_gsd(gsd_items, gsd_counts, analysis_date):
     :return: None
     """
 
-    gsd_counts["year"] = gsd_counts.apply(lambda x: int(x['gsd_path'].split("/")[2]), axis=1)
+    gsd_counts["year"] = gsd_counts.apply(lambda x: int(x['path'].split("/")[2]), axis=1)
 
     """Count by year"""
     gsd_year_counts = gsd_items["year"].value_counts().rename_axis('year').reset_index(name='counts').sort_values(
@@ -186,8 +186,8 @@ def generate_complete_gsd_schema(gsd_items_complete, analysis_date):
 
     # Check if schema and master_checklist already exists so we don't have to re-run
     if os.path.exists(f"./data/schemas/gsd_complete_schema.json") and os.path.exists(gsd_counts_filename):
-        print(f"Schema (./data/schemas/gsd_complete_schema.json) and counts ({gsd_counts_filename}) already exist,"
-              f"loading those.")
+        print(f"Using preexisting schema (./data/schemas/gsd_complete_schema.json) and counts ({gsd_counts_filename}) "
+              f"files.")
         with open(f"./data/schemas/gsd_complete_schema.json", 'r') as f:
             schema = json.load(f)
             f.close()
@@ -385,7 +385,7 @@ if __name__ == '__main__':
         json.dump(schema_gsd, write_file, indent=4, sort_keys=True)
 
     # Find instances when the GSD object is missing
-    example_missing_gsd = gsd_df[gsd_df["missingGSD"] == 1].sort_values("gsd_path")
+    example_missing_gsd = gsd_df[gsd_df["missingGSD"] == 1].sort_values("path")
     print(f"Missing a GSD object. Total: {len(example_missing_gsd)} | {example_missing_gsd['api'].values.tolist()}\n")
 
     # Find instances when entries only contain a GSD object
@@ -395,7 +395,7 @@ if __name__ == '__main__':
                               (gsd_df["gitlab.com"] == 0) &
                               (gsd_df["nvd.nist.gov"] == 0) &
                               (gsd_df["cve.org"] == 0) &
-                              (gsd_df["OSV"] == 0)].sort_values("gsd_path")
+                              (gsd_df["OSV"] == 0)].sort_values("path")
     print(f"Only contains a GSD object. Total: {len(example_only_gsd)} | {example_only_gsd['api'].values.tolist()}\n")
 
     """============================================================================================================"""
@@ -448,7 +448,7 @@ if __name__ == '__main__':
 
     """kurt SCHEMA"""
     schema_kurt = complete_schema["namespaces"]["properties"]["github.com/kurtseifried:582211"]
-    example_kurt = gsd_df[gsd_df["github.com/kurtseifried:582211"] == 1].sort_values("gsd_path")
+    example_kurt = gsd_df[gsd_df["github.com/kurtseifried:582211"] == 1].sort_values("path")
     print(f"github.com/kurtseifried:582211 object. Total: "
           f"{len(example_kurt)} | {example_kurt['api'].values.tolist()}\n")
 
@@ -487,7 +487,7 @@ if __name__ == '__main__':
 
     """overlay SCHEMA"""
     schema_overlay = complete_schema["overlay"]
-    example_overlay = gsd_df[gsd_df["overlay"] == 1].sort_values("gsd_path")
+    example_overlay = gsd_df[gsd_df["overlay"] == 1].sort_values("path")
     print(f"overlay examples: {example_overlay['api'].values.tolist()}")
 
     print(f"Total Time: {time.time() - start}")
