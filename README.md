@@ -6,6 +6,12 @@ The primary goal of this analysis is to understand the data sources, structure, 
 
 Clone both this repository (gsd-analysis) and the [gsd-database](https://github.com/cloudsecurityalliance/gsd-database#gsd-repos) repository.
 
+Checkout the gsd-database commit to replicate below results:
+
+```shell
+:~/gsd-database$ git checkout d8ce33d48de2f00130e821e9828c3e04b9a4b520
+```
+
 From within the gsd-analysis cloned repo run the following:
 
 ```shell
@@ -33,10 +39,11 @@ $ tree ./data --dirsfirst
 │   ├── schema_gsd_object.json #GSD object schema
 │   ├── schema_nvd.json #NVD object schema
 │   └── schema_osv.json #OSV object schema
+├── gsd_counts_20220520.csv #General count information of all GSD entries
 └── gsd_entries_20220520.csv #List of all GSD entries (path, year, group_id, gsd, api)
 ```
 
-
+TODO: Describe gsd_counts
 
 The below analysis was completed on the GSD timestamp: 2022-05-20T05:00:05:000. To replicate the below results checkout the gsd-database at commit SHA *d8ce33d48de2f00130e821e9828c3e04b9a4b520*. 
 
